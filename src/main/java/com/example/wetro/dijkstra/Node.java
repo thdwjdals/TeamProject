@@ -969,7 +969,9 @@ public class Node implements Comparable<Node>{
                 transferredNodes.add(node);
             }
         }
-
+        if(transferredNodes.get(0) == shortestPath.get(0)){
+            transferredNodes.remove(0);
+        }
         return transferredNodes;
     }
 

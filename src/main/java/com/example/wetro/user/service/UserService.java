@@ -7,6 +7,7 @@ import java.util.Optional;
 
 public interface UserService {
 
+    public Optional<User> findByUserid(String userid);
 
     public boolean isExistId(String email);
     public boolean isExistEmail(String email);
@@ -15,4 +16,5 @@ public interface UserService {
 
     public Optional<User> login(UserLoginDto dto);
 
+    Optional<User> findByToken(String token);
 }

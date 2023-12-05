@@ -3,61 +3,85 @@ package com.example.wetro.bookmark.controller;
 
 import com.example.wetro.bookmark.dto.BookMark;
 import com.example.wetro.bookmark.dto.BookMarkDto;
+import com.example.wetro.bookmark.dto.BookMarkTokenDto;
+import com.example.wetro.bookmark.repository.BookMarkrepository;
 import com.example.wetro.bookmark.service.BookMarkService;
 import com.example.wetro.response.bookmarkResponse;
+import com.example.wetro.user.dto.TokenDto;
+import com.example.wetro.user.dto.User;
+import com.example.wetro.user.repository.UserRepository;
+import com.example.wetro.user.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.parameters.P;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
 
 import static com.example.wetro.response.Message.*;
 import static com.example.wetro.response.bookmarkResponse.fail;
 import static com.example.wetro.response.bookmarkResponse.success;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/wetro")
 public class BookMarkApiController {
     private final BookMarkService bookMarkService;
+    private final UserService userService;
 
     @PostMapping("/bookmark")
-    public bookmarkResponse registerBookmark(@RequestBody BookMarkDto bookMarkdto){
+    public bookmarkResponse registerBookmark(@RequestBody BookMarkDto bookMarkdto) {
+        // 프론트에서 받은 토큰
+        String token = bookMarkdto.getToken();
 
-        BookMark bookmark = BookMark.builder()
-                .from(bookMarkdto.getFrom())
-                .to(bookMarkdto.getTo())
-                .layover(bookMarkdto.getLayover())
-                .alias(bookMarkdto.getAlias())
-                .alarm(bookMarkdto.getAlarm())
-                .build();
+        // 토큰을 이용하여 회원 정보 가져오기
+        Optional<User> user = userService.findByToken(token);
 
-        bookMarkService.saveBookMark(bookmark);
+        // 토큰에 해당하는 회원 정보가 있는지 확인
+        if (user.isPresent()) {
+            // 토큰에 해당하는 회원 정보가 있으면 BookMark 객체 생성 및 저장
+            BookMark bookmark = BookMark.builder()
+                                    .start_location(bookMarkdto.getStart_location())
+                                    .end_location(bookMarkdto.getEnd_location())
+                                    .layover_location(bookMarkdto.getLayover_location())
+                                    .alias(bookMarkdto.getAlias())
+                                    .type(bookMarkdto.getType())
+                                    .user(user.get())
+                                    .build();
 
-        return success(SUCCESS_TO_BOOKMARK);
 
-    }
-    @PostMapping("/bookmark/edit")
-    public bookmarkResponse editBookmark(@RequestBody BookMarkDto bookMark){
-// 요청으로부터 얻은 id 값
-        Long bookmarkId = bookMark.getId();
+            bookMarkService.saveBookMark(bookmark);
 
-        // id를 사용하여 DB에서 해당 BookMark 객체를 찾음
-        BookMark findBookMark = bookMarkService.findBookMarkById(bookmarkId);
-
-        // 찾은 BookMark가 null이 아닌지 확인
-        if (findBookMark != null) {
-            // BookMarkDto에서 필요한 정보를 가져와서 수정
-            findBookMark.setAlias(bookMark.getAlias());
-            findBookMark.setAlarm(bookMark.getAlarm());
-
-            // 수정된 BookMark를 저장
-            bookMarkService.saveBookMark(findBookMark);
-
-            return success(SUCCESS_TO_EDIT_BOOKMARK);
+            return success(SUCCESS_TO_BOOKMARK);
         } else {
-            // 해당 id로 찾은 BookMark가 없을 경우 에러 처리
-            return fail(FAIL_TO_EDIT_BOOKMARK);
+            // 토큰에 해당하는 회원 정보가 없으면 실패 응답
+            return fail(FAIL_TO_BOOKMARK);
         }
     }
+
+    @PostMapping("/bookmark/lists")
+    public bookmarkResponse bookMarksLists(@RequestBody BookMarkTokenDto tokenDto) {
+        log.info("입력 받은 토큰 = {}", tokenDto.getToken());
+        String token = tokenDto.getToken();
+
+        Optional<User> userOptional = userService.findByToken(token);
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            log.info("토큰을 이용한 회원 객체 찾기 = {}",user);
+
+            // 토큰을 이용하여 회원 정보 가져오기
+            List<BookMark> bookMarks = bookMarkService.findAllByUser(Optional.of(user));
+            return success(SUCCESS_TO_LOAD_BOOKMARKS,bookMarks);
+        } else {
+            log.info("토큰에 해당하는 사용자가 없습니다.");
+            // 사용자가 없는 경우 빈 리스트 반환 또는 다른 처리를 수행할 수 있습니다.
+            return fail(FAIL_TO_LOAD_BOOKMARKS);
+        }
+    }
+
 }

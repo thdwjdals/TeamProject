@@ -1,7 +1,9 @@
 package com.example.wetro.user.service;
 
+import com.example.wetro.user.dto.Token;
 import com.example.wetro.user.dto.User;
 import com.example.wetro.user.dto.UserLoginDto;
+import com.example.wetro.user.repository.TokenRepository;
 import com.example.wetro.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +19,13 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TokenRepository tokenRepository;
+
+    @Override
+    public Optional<User> findByUserid(String userid) {
+        Optional<User> byUserid = userRepository.findByUserid(userid);
+        return  byUserid;
+    }
 
     @Override
     public boolean isExistId(String userid) {
@@ -39,7 +48,6 @@ public class UserServiceImpl implements UserService {
         log.info("login service");
         // 사용자 아이디로 사용자 조회
         Optional<User> loginUser = userRepository.findByUserid(dto.getUserid());
-        log.info("로그인을 위한 사용자 조회 = {}",loginUser.get());
         // 사용자가 존재하고, 비밀번호가 일치하면 로그인 성공
         if (loginUser.isPresent() && passwordEncoder.matches(dto.getPassword(), loginUser.get().getPassword())) {
             User user = loginUser.get();
@@ -55,6 +63,14 @@ public class UserServiceImpl implements UserService {
         }
         // 로그인 실패
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<User> findByToken(String token) {
+        Optional<Token> optionalToken = tokenRepository.findByToken(token);
+
+        // If the Token entity is present, get the associated User
+        return optionalToken.map(Token::getUser);
     }
 
 }

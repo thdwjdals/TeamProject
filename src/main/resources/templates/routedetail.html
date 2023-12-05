@@ -124,6 +124,8 @@
         .route-detail{
             height: 70%;
         }
+
+
     </style>
 </head>
 <body>
@@ -407,7 +409,7 @@
                     const container = document.querySelector('.route-container')
                     container.innerHTML =`
                         <div class="route-detail">
-                            <ul>
+                            <ul id="node">
                                 <li class="dot"><p class="dot-text">${routefrom}</p></li>
                                 <li class="line"><div class="line-text"></div></li>
                                 <li class="dot"><p class="dot-text">${routeto}</p></li>
@@ -421,6 +423,13 @@
                             </ul>
                         </div>
                     `
+                    const transnode = document.querySelector('.line')
+                    for(let i=0;length(data.translist);i++){
+                        const li =document.createElement("li")
+                        li.setAttribute('id',translist[i])
+                        transnode.appendChild(li)
+                    }
+
                 }
 
 
@@ -434,8 +443,9 @@
         if(token===null){
             alert('로그인 후 이용가능한 기능입니다.')
         }
-
-        else{fetch('wetro/bookmark',
+        else{
+            const name = prompt('즐겨찾기의 별명을 입력해주세요.',)
+            fetch('/wetro/bookmark',
             {
                 method: 'POST',
                 headers: {
@@ -443,12 +453,11 @@
                 },
                 body: JSON.stringify({
                     "token":token,
-                    "from":routefrom,
-                    "layover":routelayover,
-                    "to":routeto,
+                    "start_location":routefrom,
+                    "layover_location":routelayover,
+                    "end_location":routeto,
                     "type":routetype,
-                    "alias":'즐겨찾기',
-                    "alarm":null,
+                    "alias":name,
                 }),
             })
             .then(response => response.json())

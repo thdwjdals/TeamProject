@@ -1,17 +1,17 @@
 package com.example.wetro.user.dto;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import com.example.wetro.bookmark.dto.BookMark;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+
 
 @Entity
 @Table(name = "user")
-@Data
+@Getter
+@Setter
 @RequiredArgsConstructor
 public class User {
 
@@ -39,5 +39,6 @@ public class User {
 
 
     @OneToOne(cascade = CascadeType.PERSIST, mappedBy = "user")
+    @JsonIgnore
     private Token token;
 }

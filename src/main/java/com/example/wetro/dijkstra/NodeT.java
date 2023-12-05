@@ -939,6 +939,17 @@ public class NodeT implements Comparable<NodeT> {
         nodes = new ArrayList<>();
         transNodes = new ArrayList<>();
     }
+    public List<NodeT> findTransferredNodesInShortestPath(List<NodeT> transNodes) {
+        List<NodeT> transferredNodes = new ArrayList<>();
+
+        for (NodeT node : shortestPath) {
+            if (transNodes.contains(node)) {
+                transferredNodes.add(node);
+            }
+        }
+
+        return transferredNodes;
+    }
 
     @Override
     public int compareTo(NodeT node) {
@@ -1090,8 +1101,9 @@ public class NodeT implements Comparable<NodeT> {
 
         //최소환승 경로
         String resultPath = destination.printMinTransfer(destination);
+        List<NodeT> transInPath = destination.findTransferredNodesInShortestPath(transNodes);
 
-        return new resultT(destination.getTime(), destination.getCost(), destination.getTransferCount(), resultPath);
+        return new resultT(destination.getTime(), destination.getCost(), destination.getTransferCount(), resultPath,transInPath);
     }
 
     //주어진 인접노드와의 최단경로 평가하고 업데이트
@@ -1138,12 +1150,14 @@ public class NodeT implements Comparable<NodeT> {
         private Integer cost;
         private Integer time;
         private String path;
+        private List<NodeT> transInPath;
 
-        public resultT(Integer time, Integer cost, int transferCount, String resultPath) {
+        public resultT(Integer time, Integer cost, int transferCount, String resultPath, List<NodeT> transInPath) {
             this.time = time;
             this.cost = cost;
             this.transferCount = transferCount;
             this.path = resultPath;
+            this.transInPath  = transInPath;
         }
 
         @Override

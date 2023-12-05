@@ -1164,7 +1164,7 @@ public class Node implements Comparable<Node>{
         }
     }
 
-//    주어진 인접노드와의 최단경로 평가하고 업데이트
+    //    주어진 인접노드와의 최단경로 평가하고 업데이트
     private static void evaluateCost(Node adjacentNode, Integer cost, Integer time, Node sourceNode){
         Integer newCost = sourceNode.getCost() + cost;
         Integer newTime = sourceNode.getTime() + time;
